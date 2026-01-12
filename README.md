@@ -4,7 +4,7 @@ This project synthesizes and visualizes published difference-in-differences esti
 Helsinki’s 2020 anonymized recruitment pilot.
 
 ## Data
-The project uses summary statistics and regression estimates reported in Kanninen et al. (2023).
+The project uses summary statistics and regression estimates reported in Kanninen et al. (2023). The goal is not to re-estimate the original models but to focus on transparent replication and interpretation of published estimates.
 No individual-level microdata are used.
 
 ## Methods
