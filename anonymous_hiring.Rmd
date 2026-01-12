@@ -1,0 +1,239 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r setup,include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+library(ggplot2)
+```
+---
+title: "Anonymous Hiring Analysis"
+output: pdf_document
+date: "2025-12-16"
+---
+
+## 1. Introduction
+
+This project examines whether anonymized recruitment increased the probability of interview invitations and hiring for underrepresented groups, using published difference-in-differences estimates from Helsinki’s 2020 anonymous hiring pilot. The analysis focuses on applicants with foreign-sounding names and women, and evaluates effects at both the individual and job-opening levels.
+
+Recruitment discrimination can reduce labor market efficiency by preventing the most suitable candidates from being matched to jobs. When hiring decisions are influenced by characteristics unrelated to productivity—such as gender, age, or ethnic background—firms may forgo potential productivity gains and innovation. At the aggregate level, discriminatory hiring practices can reduce labor supply, lower employment rates among certain groups, and increase public expenditures through higher unemployment and social assistance.
+
+Anonymized recruitment has been proposed as a policy tool to reduce discrimination in hiring by removing personal identifiers from job applications during the initial screening stage. By concealing information such as applicants’ names, gender, age, and native language, anonymization aims to promote equal treatment and improve allocative efficiency. However, previous research has produced mixed results, and anonymization does not necessarily prevent discrimination at later stages of the hiring process.
+
+In 2020, the City of Helsinki implemented a pilot program of anonymized recruitment in selected job openings. The pilot provides a valuable quasi-experimental setting, as anonymization was introduced in a pre-determined and phased manner across openings. Previous studies (Kanninen et al., 2023) analyze the pilot using difference-in-differences methods and document both potential benefits and limitations, including the relatively small scale of the experiment.
+
+This project revisits the Helsinki anonymous hiring pilot by synthesizing and visualizing published difference-in-differences estimates. Rather than re-estimating the original models, the analysis focuses on interpreting effect magnitudes, statistical uncertainty, and differences between individual-level and job-opening-level outcomes. The remainder of the project is structured as follows. Section 2 describes the data and pre-treatment characteristics of job openings and applicants. Section 3 outlines the empirical strategy. Section 4 presents the main results, and Section 5 discusses their interpretation and limitations.
+
+
+
+## 2. Data
+
+The analysis in this project is based on estimates (Anotomy of An Anonymous Hiring Pilot, Kanninen, Kiviholma, Virkola, 2023) from the City of Helsinki's anonymized hiring pilot conducted between September 2019 and January 2020. The data cover job openings posted by the city during this period as well as information on applicants, interviewees and hired candidates associated with each opening.
+
+```{r}
+interview_diffs <- data.frame(
+  variable = c(
+    "No. Applicants", 
+    "Temporary Contract", 
+    "Woman", 
+    "Foreign-sounding name", 
+    "Finnish native language", 
+    "Age", 
+    "Bachelor's degree", 
+    "Experience (years)"
+    ),
+  diff = c(11.76, -0.04, -0.05, 0.04, -0.06, 1.28, -0.40, 0.46)
+  )
+
+ggplot(interview_diffs, aes(x = diff, y = variable)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+geom_point(size = 3) +
+labs(
+  x = "Difference (Treated – Control)",
+  y = NULL,
+  title = "Figure 1. Pre-Treatment Differences Between Treated and 
+  Control Job Openings (Interviews)",
+  subtitle = "Differences measured before anonymization was implemented"
+    )+
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    plot.margin = margin(t = 15, r = 15, b = 15, l = 15)
+  )
+```
+
+
+Figure 1 presents pre-treatment characteristics of job openings and applicants in treated and control groups. Several differences in observable characteristics are present prior to the pilot, particularly in applicant volume and educational attainment. This indicates that treated and control job openings are not identical in levels before anonymization.
+
+Importantly, the difference-in-differences approach does not require identical pre-treatment means, but rather parallel trends in the absence of treatment. To account for remaining differences, the original analyses include job fixed effects and, where applicable, individual-level controls for demographic characteristics, education, and experience.
+
+Pre-treatment characteristics are reported separately for job openings, applicants, and recruits. Recruit characteristics are based on a substantially smaller sample size and are therefore interpreted descriptively.
+
+## 3. Empirical Strategy
+
+
+
+The empirical analysis relies on published difference-in-differences estimates from the anonymized recruitment pilot implemented by the City of Helsinki in 2020. The pilot introduced anonymization in a pre-determined and phased manner across job openings, generating treated and control groups over time.
+
+The difference-in-differences framework compares changes in interview and hiring outcomes for underrepresented groups between anonymized and non-anonymized job openings, before and after the introduction of anonymization. This approach controls for time-invariant differences between job openings as well as common time trends affecting all openings.
+
+Identification relies on the assumption of parallel trends, meaning that in the absence of anonymization, outcomes in treated and control job openings would have evolved similarly. Although pre-treatment differences in observable characteristics are present, the framework does not require identical pre-treatment levels. The original specifications further include job fixed effects and, in some cases, individual-level controls to account for remaining heterogeneity.
+
+This project does not re-estimate the original regression models. Instead, it synthesizes and visualizes the published estimates to assess the magnitude, direction, and statistical precision of the estimated effects.
+
+
+## 4. Results
+
+
+
+```{r}
+table3_estimates <- data.frame(
+  group = c("Women", "Women", "Women", "Women", "Women", "Women", "Foreign-sounding name", "Foreign-sounding name", "Foreign-sounding name", "Foreign-sounding name", "Foreign-sounding name", "Foreign-sounding name"),
+  outcome = c("Interview (3)", "Interview (2)", "Interview (1)", "Hire (6)", "Hire (5)", "Hire (4)","Interview (3)", "Interview (2)", "Interview (1)", "Hire (6)", "Hire (5)", "Hire (4)"),
+  estimate = c(-0.022, -0.023, -0.023, 0.001, 0.001, 0.001, 0.049, 0.052, 0.049, 0.072, 0.073, 0.071),
+  se = c(0.033, 0.032, 0.032, 0.022, 0.022, 0.022, 0.029, 0.029, 0.029, 0.015, 0.015, 0.015)
+)
+
+table3_estimates$lower <- table3_estimates$estimate - 1.96 * table3_estimates$se
+table3_estimates$upper <- table3_estimates$estimate + 1.96 * table3_estimates$se
+
+table3_estimates$label <- paste(
+  table3_estimates$group,
+  table3_estimates$outcome,
+  sep = " – "
+)
+
+table3_estimates$label <- factor(
+  table3_estimates$label,
+  levels = rev(c(
+    "Women – Interview (1)",
+    "Women – Interview (2)",
+    "Women – Interview (3)",
+    "Women – Hire (4)",
+    "Women – Hire (5)",
+    "Women – Hire (6)",
+    "Foreign-sounding name – Interview (1)",
+    "Foreign-sounding name – Interview (2)",
+    "Foreign-sounding name – Interview (3)",
+    "Foreign-sounding name – Hire (4)",
+    "Foreign-sounding name – Hire (5)",
+    "Foreign-sounding name – Hire (6)"
+  ))
+)
+
+ggplot(table3_estimates, aes(x = estimate, y = label)) +
+  
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_point(size = 3) + 
+  geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
+  
+  facet_grid(group ~ ., scales = "free_y") +
+  
+  labs(
+    x= "Effect on Probabality",
+    y = NULL,
+    title = "Figure 2. Effects of Anonymized Recruitment on 
+    Interview and Hiring Outcomes",
+    subtitle = "Difference-in-differences estimates with 95% confidence intervals",
+    caption = "Note: Interview (1) and Hire (4) control for applicant's job experience and educational attainment,
+Interview (2) and Hire (5) control for applicants age and gender (when applicable) 
+and Interview (3) and Hire (6) control for job title fixed effects and provide the baseline effects."
+  ) +
+  
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    plot.margin = margin(15, 15, 15, 15)
+  )
+
+```
+
+Figure 2 presents difference-in-differences estimates of the effects of anonymized recruitment on interview and hiring probabilities for women and applicants with foreign-sounding names at the individual level. The estimates indicate that anonymization increased interview probabilities for applicants with foreign-sounding names by approximately 5 percentage points relative to applicants with Finnish-sounding names. Hiring probabilities for applicants with foreign-sounding names increased by around 7 percentage points following anonymization.
+
+In contrast, the estimates for women suggest small negative effects on interview probabilities, but these effects are not statistically significant across specifications. The estimated effects on hiring probabilities for women are close to zero.
+
+```{r}
+table5_estimates <- data.frame(
+  group = c("Women", "Women", "Women", "Foreign-sounding name", "Foreign-sounding name", "Foreign-sounding name"),
+  outcome = c("Applicants", "Interviewees", "Hired", "Applicants", "Interviewees", "Hired"),
+  estimate = c(0.059, 0.058, 0.111, -0.028, 0.081, 0.077),
+  se = c(0.035, 0.095, 0.099, 0.020, 0.048, 0.056)
+)
+
+table5_estimates$lower <- table5_estimates$estimate - 1.96 * table5_estimates$se
+table5_estimates$upper <- table5_estimates$estimate + 1.96 * table5_estimates$se
+
+table5_estimates$label <- paste(
+  table5_estimates$group,
+  table5_estimates$outcome,
+  sep = " – "
+)
+
+table5_estimates$label <- factor(
+  table5_estimates$label,
+  levels = rev(c(
+    "Women – Applicants",
+    "Women – Interviewees",
+    "Women – Hired",
+    "Foreign-sounding name – Applicants",
+    "Foreign-sounding name – Interviewees",
+    "Foreign-sounding name – Hired"
+  ))
+)
+
+ggplot(table5_estimates, aes(x = estimate, y = label)) +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "gray60") +
+  geom_point(size = 3) +
+  geom_errorbarh(aes(xmin = lower, xmax = upper), height = 0.2) +
+  facet_grid(group ~ ., scales = "free_y") +
+  labs(
+    x = "Effect on Outcome",
+    y = NULL,
+    title = "Figure 3. Effects of Anonymized Recruitment 
+    at the Job-Opening Level",
+    subtitle = "Difference-in-differences estimates with 95% confidence intervals"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    plot.subtitle = element_text(hjust = 0.5),
+    plot.margin = margin(15, 15, 15, 15)
+  )
+```
+
+Figure 3 reports difference-in-differences estimates at the job-opening level, focusing on the number of applications, interviews, and hires. While applicants with foreign-sounding names appear to benefit in later stages of the hiring process, anonymization is associated with a decrease in the share of applications from this group. The point estimate suggests a reduction of approximately 3 percentage points, which is not statistically significant but potentially meaningful relative to the pre-treatment baseline.
+
+For women, anonymized recruitment is associated with an increase in the share of applications of around 6 percentage points. However, the estimates for interviews and hires at the job-opening level are imprecisely estimated for both groups, and confidence intervals include zero.
+
+Taken together, the estimates suggest that for applicants with foreign-sounding names, a reduction in application shares combined with higher interview and hiring probabilities at the individual level may result in a positive overall effect on interviews and hires. At the job-opening level, however, aggregating outcomes reduces precision, as individual-level variation is no longer exploited and effects operate in opposite directions. For women, the combination of increased application shares and largely unchanged interview and hiring probabilities implies a higher total number of women interviewed and hired under anonymized recruitment, although these effects are not statistically significant at conventional levels.
+
+## 5. Discussion
+
+The results suggest that anonymized recruitment can affect different stages of the hiring process in distinct ways. At the individual level, anonymization appears to improve interview and hiring probabilities for applicants with foreign-sounding names. This finding is consistent with the interpretation that removing personal identifiers during initial screening reduces the scope for discrimination based on perceived ethnic background.
+
+At the same time, the job-opening-level results indicate that anonymization may influence application behavior. The estimated reduction in the share of applications from applicants with foreign-sounding names suggests that anonymized recruitment does not necessarily encourage additional applications from this group and may even discourage some potential applicants. One possible explanation is that anonymization reduces informational signals that some applicants value when deciding whether to apply, such as the ability to tailor applications or signal relevant background characteristics. Alternatively, anonymized recruitment may change perceptions of the hiring process in ways that affect self-selection into applying.
+
+For women, anonymized recruitment is associated with an increase in the share of applications at the job-opening level, while individual-level interview and hiring probabilities remain largely unchanged. This pattern suggests that anonymization may encourage women to apply for positions without substantially altering evaluation outcomes once applications are submitted. As a result, the total number of women interviewed and hired may increase through higher application volumes rather than changes in selection probabilities.
+
+The contrast between individual-level and job-opening-level results highlights an important trade-off. While anonymization can improve fairness in screening by increasing interview and hiring probabilities for certain underrepresented groups, aggregation at the job-opening level reduces statistical precision and obscures individual-level variation. Moreover, when effects at different stages of the hiring process operate in opposite directions, the net impact on total hiring outcomes becomes more difficult to detect.
+
+Several limitations should be noted. First, the pilot was implemented on a relatively small scale, which limits statistical power, particularly in analyses aggregated to the job-opening level. Second, anonymization only applied to early stages of recruitment and does not prevent discrimination in interviews or final hiring decisions. Third, the analysis relies on published estimates rather than re-estimation of the original models, which constrains robustness checks and alternative specifications.
+
+Despite these limitations, the findings suggest that anonymized recruitment can influence both selection and application behavior, and that its effects are heterogeneous across groups and stages of the hiring process. These results underscore the importance of evaluating recruitment policies along the entire hiring pipeline rather than focusing solely on final hiring outcomes.
+
+## 6. Conclusions
+
+This project examined the effects of anonymized recruitment on interview and hiring outcomes using published difference-in-differences estimates from Helsinki’s 2020 anonymous hiring pilot. By synthesizing and visualizing existing estimates, the analysis assessed how anonymization affects underrepresented groups at both the individual and job-opening levels.
+
+The results indicate that anonymized recruitment increased interview and hiring probabilities for applicants with foreign-sounding names, suggesting that anonymization can reduce discriminatory screening at early stages of recruitment. For women, anonymization appears to increase application rates, while having little effect on interview and hiring probabilities conditional on applying.
+
+Taken together, the findings imply that anonymized recruitment can improve fairness in hiring processes, but its overall impact depends on how it affects both application behavior and selection decisions. Policies that focus exclusively on anonymization may therefore be insufficient if they do not address later stages of recruitment or the information needs of applicants.
+
+From a policy perspective, anonymized recruitment should be viewed as a complementary tool rather than a standalone solution to hiring discrimination. Future research could explore larger-scale implementations, examine longer-term outcomes, and analyze how anonymization interacts with other diversity and inclusion policies.
+
+Overall, the Helsinki pilot provides valuable evidence on the potential and limitations of anonymized recruitment. This project demonstrates how quasi-experimental evidence can be used to evaluate policy interventions and highlights the importance of carefully interpreting effects across different levels of analysis and stages of the hiring process.
+
+
